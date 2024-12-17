@@ -57,3 +57,4 @@ def entry():
     else:
         logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
+
