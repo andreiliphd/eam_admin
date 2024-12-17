@@ -26,7 +26,6 @@ def telegram_url_builder(method, **kwargs):
     logger.log(logging.WARNING, str(basic)) 
     return basic
 
-
 @app.route("/", methods = ["GET", "POST"])
 def entry():
     data = request.json
