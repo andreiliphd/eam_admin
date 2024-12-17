@@ -50,8 +50,10 @@ def entry():
     if "message" in data.keys():
         display_all_options_message(data)
     elif (("callback_query" in data.keys()) & ("data" in data["callback_query"].keys())):
+        telegram_url_builder("sendMessage", {"chat_id": os.getenv("RL_CHAT_ID"), "text": redis.get(data["callback_query"]["data"])})
         redis.delete(data["callback_query"]["data"])
         display_all_opptions_data(data)
+        
     else:
         logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
