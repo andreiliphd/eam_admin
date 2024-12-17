@@ -38,8 +38,8 @@ def entry():
     data = request.json
     if "message" in data.keys():
         display_all_opptions(data)
-    elif "data" in data.keys():
-        redis.delete(data["data"])
+    elif (("callback_query" in data.keys()) & ("data" in data["callback_query"].keys())):
+        redis.delete(data["callback_query"]["data"])
         display_all_opptions(data)
     else:
         logger.log(logging.WARNING, str(data))
