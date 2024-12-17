@@ -16,7 +16,18 @@ logger = logging.getLogger(__name__)
 
 redis = Redis(url=os.getenv("HOST_REDIS"), token=os.getenv("PASSWORD_REDIS"))
 
-def display_all_opptions(data):
+def display_all_options_message(data):
+    keys = redis.keys('*')
+    values = redis.mget(keys)
+    inline = {"inline_keyboard" : []}
+    for i in range(len(keys)):
+        inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
+    outline = json.dumps(inline) 
+    telegram_url_builder("sendMessage", {"chat_id": data["message"]["chat"]["id"], "text": "Утвердить", "reply_markup": outline})
+    logger.log(logging.WARNING, "display_all_opptions" + " " + str(data))
+    return {"text": str(data)}
+
+def display_all_opptions_data(data):
     keys = redis.keys('*')
     values = redis.mget(keys)
     inline = {"inline_keyboard" : []}
@@ -37,10 +48,10 @@ def telegram_url_builder(method, payload):
 def entry():
     data = request.json
     if "message" in data.keys():
-        display_all_opptions(data)
+        display_all_options_message(data)
     elif (("callback_query" in data.keys()) & ("data" in data["callback_query"].keys())):
         redis.delete(data["callback_query"]["data"])
-        display_all_opptions(data)
+        display_all_opptions_data(data)
     else:
         logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
