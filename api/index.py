@@ -27,12 +27,15 @@ def telegram_url_builder(method, payload):
 @app.route("/", methods = ["GET", "POST"])
 def entry():
     data = request.json
-    keys = redis.keys('*')
-    values = redis.mget(keys)
-    inline = {"inline_keyboard" : []}
-    for i in range(len(keys)):
-        inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
-    outline = json.dumps(inline) 
-    telegram_url_builder("sendMessage", {"chat_id": data["message"]["chat"]["id"], "text": "Утвердить", "reply_markup": outline})
-    logger.log(logging.WARNING, str(data))
+    if "message" in data.keys():
+        keys = redis.keys('*')
+        values = redis.mget(keys)
+        inline = {"inline_keyboard" : []}
+        for i in range(len(keys)):
+            inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
+        outline = json.dumps(inline) 
+        telegram_url_builder("sendMessage", {"chat_id": data["message"]["chat"]["id"], "text": "Утвердить", "reply_markup": outline})
+        logger.log(logging.WARNING, str(data))
+    else:
+        logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
