@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 import logging
@@ -15,15 +16,11 @@ logger = logging.getLogger(__name__)
 
 redis = Redis(url=os.getenv("HOST_REDIS"), token=os.getenv("PASSWORD_REDIS"))
 
-def telegram_url_builder(method, **kwargs):
-    basic = "https://api.telegram.org/bot" + os.getenv("TOKEN") + "/" + str(method) + "?"
-    for k, val in kwargs.items():
-        print("%s == %s" % (k, val))
-        basic += str(k) + "=" + str(val) + "&"
-    basic = basic[0:len(basic) - 1]
-    r = requests.get(basic)
-    logger.log(logging.WARNING, str(r)) 
-    logger.log(logging.WARNING, str(basic)) 
+def telegram_url_builder(method, payload):
+    basic = "https://api.telegram.org/bot" + "7881036983:AAGHguPzNqEh3StCC8l1iTsXzZDqKtAQcwI" + "/" + method
+    r = requests.post(basic, data = payload)
+    print(r.status_code)
+    print(r.text)
     return basic
 
 @app.route("/", methods = ["GET", "POST"])
@@ -34,6 +31,7 @@ def entry():
     inline = {"inline_keyboard" : []}
     for i in range(len(keys)):
         inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
-    telegram_url_builder("sendMessage", chat_id=data["message"]["chat"]["id"], text = "Утвердить", reply_markup = inline)
+    outline = json.dumps(inline) 
+    telegram_url_builder("sendMessage", {"chat_id": 957931698, "text": "Утвердить", "reply_markup": outline})
     logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
