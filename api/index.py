@@ -16,26 +16,31 @@ logger = logging.getLogger(__name__)
 
 redis = Redis(url=os.getenv("HOST_REDIS"), token=os.getenv("PASSWORD_REDIS"))
 
+def display_all_opptions(data):
+    keys = redis.keys('*')
+    values = redis.mget(keys)
+    inline = {"inline_keyboard" : []}
+    for i in range(len(keys)):
+        inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
+    outline = json.dumps(inline) 
+    telegram_url_builder("sendMessage", {"chat_id": data["message"]["chat"]["id"], "text": "Утвердить", "reply_markup": outline})
+    logger.log(logging.WARNING, "display_all_opptions" + " " + str(data))
+    return {"text": str(data)}
+
 def telegram_url_builder(method, payload):
     basic = "https://api.telegram.org/bot" + "7881036983:AAGHguPzNqEh3StCC8l1iTsXzZDqKtAQcwI" + "/" + method
     r = requests.post(basic, data = payload)
-    logger.log(logging.WARNING, str(r.text))
-    print(r.status_code)
-    print(r.text)
+    logger.log(logging.WARNING, "telegram_url_builder" + " " + str(r.text))
     return basic
 
 @app.route("/", methods = ["GET", "POST"])
 def entry():
     data = request.json
     if "message" in data.keys():
-        keys = redis.keys('*')
-        values = redis.mget(keys)
-        inline = {"inline_keyboard" : []}
-        for i in range(len(keys)):
-            inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
-        outline = json.dumps(inline) 
-        telegram_url_builder("sendMessage", {"chat_id": data["message"]["chat"]["id"], "text": "Утвердить", "reply_markup": outline})
-        logger.log(logging.WARNING, str(data))
+        display_all_opptions(data)
+    elif "data" in data.keys():
+        redis.delete(data["data"])
+        display_all_opptions(data)
     else:
         logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
