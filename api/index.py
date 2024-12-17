@@ -33,8 +33,7 @@ def entry():
     values = redis.mget(keys)
     inline = {"inline_keyboard" : []}
     for i in range(len(keys)):
-        inline['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
-        print(keys[i], values[i])
+        inline['inline_keyboard'].append([{"text": redis.get(keys[i]), "callback_data": keys[i]}])
     telegram_url_builder("sendMessage", chat_id=data["message"]["chat"]["id"], text = "Утвердить", reply_markup = inline)
     logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
